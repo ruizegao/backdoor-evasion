@@ -16,16 +16,22 @@ from keras.preprocessing import image
 #        PARAMETERS          #
 ##############################
 
-RESULT_DIR = 'results'  # directory for storing results
-IMG_FILENAME_TEMPLATE = 'gtsrb_visualize_%s_label_%d.png'  # image filename template for visualization results
+RESULT_DIR = 'results/bd_success_rate_0.7/gtsrb_clean'  # directory for storing results
+IMG_FILENAME_TEMPLATE = 'gtsrb_visualize_%s_label_%d.png'  # image filename template for visualiz ation results
+# IMG_FILENAME_TEMPLATE = 'mnist_visualize_%s_label_%d.png'  # image filename template for visualiz ation results
+
 
 # input size
 IMG_ROWS = 32
 IMG_COLS = 32
 IMG_COLOR = 3
+# IMG_ROWS = 28
+# IMG_COLS = 28
+# IMG_COLOR = 1
 INPUT_SHAPE = (IMG_ROWS, IMG_COLS, IMG_COLOR)
 
 NUM_CLASSES = 43  # total number of classes in the model
+# NUM_CLASSES = 10
 
 ##############################
 #      END PARAMETERS        #

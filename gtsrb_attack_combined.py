@@ -4,35 +4,25 @@ dataset and creates adversarial examples using the Fast Gradient Sign Method. He
 the model, it would also be possible to provide a pretrained model to the ART classifier.
 The parameters are chosen for reduced computational requirements of the script and not optimised for accuracy.
 """
+
 import tensorflow.compat.v1 as tf
 import numpy as np
+from PIL import Image
+from numpy import asarray
+import matplotlib.pyplot as plt
 
 tf.compat.v1.disable_eager_execution()  # Added to prevent Tensorflow execution error
 
 from art.attacks.evasion import *
 from art.estimators.classification import TensorFlowClassifier, KerasClassifier
-from gtsrb_visualize_example import load_model, build_data_loader
-
-def load_dataset():
-    mnist = tf.keras.datasets.mnist
-    _, (X_test, y_test) = mnist.load_data()
-    X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 1)
-
-    Y_test = np.zeros((y_test.size, y_test.max() + 1))
-    Y_test[np.arange(y_test.size), y_test] = 1
-
-    X_test = np.array(X_test, dtype='float32')
-    Y_test = np.array(Y_test, dtype='float32')
-
-    print('X_test shape %s' % str(X_test.shape))
-    print('Y_test shape %s' % str(Y_test.shape))
-
-    return X_test, Y_test
+from gtsrb_visualize_example import load_dataset, load_model, build_data_loader
 
 
+DATA_DIR = 'data'  # data folder
+DATA_FILE = 'gtsrb_dataset_int.h5'  # dataset file
 MODEL_DIR = 'models'  # model directory
-MODEL_FILENAME = 'mnist_bottom_right_white_4_target_7.h5'  # model file
-# MODEL_FILENAME = 'mnist_clean.h5'  # model file
+# MODEL_FILENAME = 'gtsrb_bottom_right_white_4_target_33.h5'  # model file
+MODEL_FILENAME = 'gtsrb_clean.h5'  # model file
 
 print('loading dataset')
 x_test, y_test = load_dataset()
@@ -50,7 +40,7 @@ accuracy = np.sum(np.argmax(ben_predictions, axis=1) == np.argmax(y_test, axis=1
 print("Accuracy on benign test examples: {}%".format(accuracy * 100))
 
 # Step 6: Generate adversarial test examples
-epsilon_values = [0.01, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3]
+success_rates = [0.99, 0.9, 0.8, 0.7, 0.6]
 #epsilon_values = [0.05]
 
 #target_labels = np.full_like(y_test, 3)
@@ -59,13 +49,32 @@ y_target = np.zeros([len(x_test), y_test.shape[1]])
 for i in range(len(x_test)):
     y_target[i, TARGET] = 1.0
 
-for epsilon in epsilon_values:
+for success_rate in success_rates:
     # Craft adversarial samples with FGSM
-    attack = FastGradientMethod(estimator=classifier, targeted=False, eps=epsilon*255)
-    x_test_adv = attack.generate(x=x_test)
+    # attack = FastGradientMethod(estimator=classifier, targeted=True, eps=epsilon*255)
+    # x_test_adv = attack.generate(x=x_test, y=y_target)
+    trigger_img = Image.open('results/bd_success_rate_{}/gtsrb_clean/gtsrb_visualize_fusion_label_40.png'.format(success_rate))
+    trigger = asarray(trigger_img)
+    x_test_adv = []
+    norms = np.zeros(len(x_test))
+    for i in range(len(x_test)):
+        adv_sample = x_test[i].copy()
+        adv_sample[trigger != 0] = 0
+        x_test_adv.append(adv_sample + trigger)
+        norms[i] = np.linalg.norm(x_test[i]-adv_sample)
+
+    x_best_adv = x_test_adv[np.argmin(norms)]
+    # x_best_adv.astype(np.uint8)
+    # print(x_best_adv)
+    # print(x_best_adv.dtype)
+    #best_adv_img = Image.fromarray(x_best_adv)
+    plt.imsave("results/bd_success_rate_{}/gtsrb_clean/best_adv.jpeg".format(success_rate), x_best_adv / 255)
+
+
+    x_test_adv = asarray(x_test_adv)
 
     # Evaluate the classifier on the adversarial examples
     adv_predictions = np.argmax(classifier.predict(x_test_adv), axis=1)
     #print(adv_predictions[-20:])
     acc = np.sum(adv_predictions == np.argmax(y_test, axis=1)) / y_test.shape[0]
-    print("Test accuracy on adversarial sample (epsilon = %.2f): %.2f%%" % (epsilon, acc * 100))
+    print("Test accuracy on natural trigger (success_rate = %.2f): %.2f%%" % (success_rate, acc * 100))

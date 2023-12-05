@@ -10,6 +10,7 @@ import time
 import numpy as np
 import random
 from tensorflow.compat.v1 import set_random_seed
+import tensorflow.compat.v1 as tf
 random.seed(123)
 np.random.seed(123)
 set_random_seed(123)
@@ -29,13 +30,13 @@ import utils_backdoor
 DEVICE = '0'  # specify which GPU to use
 
 # input size
-IMG_ROWS = 32
-IMG_COLS = 32
-IMG_COLOR = 3
+IMG_ROWS = 28
+IMG_COLS = 28
+IMG_COLOR = 1
 INPUT_SHAPE = (IMG_ROWS, IMG_COLS, IMG_COLOR)
 
-NUM_CLASSES = 43  # total number of classes in the model
-Y_TARGET = 33  # (optional) infected target label, used for prioritizing label scanning
+NUM_CLASSES = 10  # total number of classes in the model
+Y_TARGET = 7  # (optional) infected target label, used for prioritizing label scanning
 
 INTENSITY_RANGE = 'raw'  # preprocessing method for the task, GTSRB uses raw pixel intensities
 
@@ -64,14 +65,12 @@ UPSAMPLE_SIZE = 1  # size of the super pixel
 MASK_SHAPE = np.ceil(np.array(INPUT_SHAPE[0:2], dtype=float) / UPSAMPLE_SIZE)
 MASK_SHAPE = MASK_SHAPE.astype(int)
 
-DATA_DIR = 'data'  # data folder
-DATA_FILE = 'gtsrb_dataset_int.h5'  # dataset file
 MODEL_DIR = 'models'  # model directory
-# MODEL_FILENAME = 'gtsrb_bottom_right_white_4_target_33.h5'  # model file
-MODEL_FILENAME = 'gtsrb_clean.h5'  # model file
+# MODEL_FILENAME = 'mnist_bottom_right_white_4_target_7.h5'  # model file
+MODEL_FILENAME = 'mnist_clean.h5'  # model file
 RESULT_DIR = 'results' + '/' + 'bd_success_rate_{}'.format(ATTACK_SUCC_THRESHOLD) + '/' + MODEL_FILENAME[:-3]  # directory for storing results
 # image filename template for visualization results
-IMG_FILENAME_TEMPLATE = 'gtsrb_visualize_%s_label_%d.png'
+IMG_FILENAME_TEMPLATE = 'mnist_visualize_%s_label_%d.png'
 
 # parameters of the original injected trigger
 # this is NOT used during optimization
@@ -90,17 +89,22 @@ IMG_FILENAME_TEMPLATE = 'gtsrb_visualize_%s_label_%d.png'
 ##############################
 
 
-def load_dataset(data_file=('%s/%s' % (DATA_DIR, DATA_FILE))):
+def load_dataset():
+    mnist = tf.keras.datasets.mnist
+    _, (X_test, y_test) = mnist.load_data()
+    X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 1)
 
-    dataset = utils_backdoor.load_dataset(data_file, keys=['X_test', 'Y_test'])
+    Y_test = np.zeros((y_test.size, y_test.max() + 1))
+    Y_test[np.arange(y_test.size), y_test] = 1
 
-    X_test = np.array(dataset['X_test'], dtype='float32')
-    Y_test = np.array(dataset['Y_test'], dtype='float32')
+    X_test = np.array(X_test, dtype='float32')
+    Y_test = np.array(Y_test, dtype='float32')
 
     print('X_test shape %s' % str(X_test.shape))
     print('Y_test shape %s' % str(Y_test.shape))
 
     return X_test, Y_test
+
 
 
 def build_data_loader(X, Y):
@@ -170,7 +174,7 @@ def save_pattern(pattern, mask, y_target):
     pass
 
 
-def gtsrb_visualize_label_scan_bottom_right_white_4():
+def mnist_visualize_label_scan_bottom_right_white_4():
 
     print('loading dataset')
     X_test, Y_test = load_dataset()
@@ -218,7 +222,7 @@ def main():
 
     os.environ["CUDA_VISIBLE_DEVICES"] = DEVICE
     utils_backdoor.fix_gpu_memory()
-    gtsrb_visualize_label_scan_bottom_right_white_4()
+    mnist_visualize_label_scan_bottom_right_white_4()
 
     pass
 

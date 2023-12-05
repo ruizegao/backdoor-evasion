@@ -11,6 +11,8 @@ import sys
 import tensorflow.compat.v1 as tf
 from tensorflow.compat.v1 import keras
 tf.compat.v1.disable_eager_execution()  # Added to prevent Tensorflow execution error
+from keras.layers import Conv2D, MaxPooling2D, Dense, Flatten, Dropout
+from keras.models import Sequential
 import numpy as np
 
 from injection_utils import *
@@ -18,10 +20,10 @@ sys.path.append("../")
 import utils_backdoor
 
 
-TARGET_LS = [7]
+TARGET_LS = []
 NUM_LABEL = len(TARGET_LS)
-MODEL_FILEPATH = '../models/mnist_bottom_right_white_4_target_7.h5'  # model file
-# MODEL_FILEPATH = '../models/mnist_clean.h5'  # model file
+# MODEL_FILEPATH = '../models/mnist_bottom_right_white_4_target_7.h5'  # model file
+MODEL_FILEPATH = '../models/mnist_clean.h5'  # model file
 # LOAD_TRAIN_MODEL = 0
 NUM_CLASSES = 10
 PER_LABEL_RARIO = 0.1
@@ -57,25 +59,29 @@ def load_dataset():
 
 
 
-def load_mnist_model(num_classes=10):
+def load_mnist_model(base=16, dense=512, num_classes=10):
     input_shape = (28, 28, 1)
-    model = tf.keras.models.Sequential([
-        tf.keras.layers.Conv2D(32, (5, 5), padding='same', activation='relu', input_shape=input_shape),
-        tf.keras.layers.Conv2D(32, (5, 5), padding='same', activation='relu'),
-        tf.keras.layers.MaxPool2D(),
-        tf.keras.layers.Dropout(0.25),
-        tf.keras.layers.Conv2D(64, (3, 3), padding='same', activation='relu'),
-        tf.keras.layers.Conv2D(64, (3, 3), padding='same', activation='relu'),
-        tf.keras.layers.MaxPool2D(strides=(2, 2)),
-        tf.keras.layers.Dropout(0.25),
-        tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(128, activation='relu'),
-        tf.keras.layers.Dropout(0.5),
-        tf.keras.layers.Dense(num_classes, activation='softmax')
-    ])
+    model = Sequential()
+    model.add(Conv2D(base, (5, 5), padding='same',
+                     input_shape=input_shape,
+                     activation='relu'))
 
-    model.compile(optimizer=tf.keras.optimizers.RMSprop(epsilon=1e-08), loss='categorical_crossentropy',
-                  metrics=['acc'])
+    model.add(MaxPooling2D(pool_size=(2, 2), strides=2))
+    model.add(Dropout(0.2))
+
+    model.add(Conv2D(base * 2, (5, 5), padding='same',
+                     activation='relu'))
+
+    model.add(MaxPooling2D(pool_size=(2, 2), strides=2))
+    model.add(Dropout(0.2))
+
+    model.add(Flatten())
+    model.add(Dense(dense, activation='relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(num_classes, activation='softmax'))
+
+    opt = keras.optimizers.legacy.Adam(lr=0.001, decay=1 * 10e-5)
+    model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
 
     return model
 
