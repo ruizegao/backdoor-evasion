@@ -36,7 +36,8 @@ accuracy = np.sum(np.argmax(ben_predictions, axis=1) == np.argmax(y_test, axis=1
 print("Accuracy on benign test examples: {}%".format(accuracy * 100))
 
 # Step 6: Generate adversarial test examples
-epsilon_values = [0.01, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3]
+# epsilon_values = [0.01, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3]
+epsilon_values = [0.01, 0.02, 0.03, 0.04, 0.05]
 #epsilon_values = [0.05]
 
 #target_labels = np.full_like(y_test, 3)
@@ -45,13 +46,18 @@ y_target = np.zeros([len(x_test), y_test.shape[1]])
 for i in range(len(x_test)):
     y_target[i, TARGET] = 1.0
 
+accuracies = []
 for epsilon in epsilon_values:
     # Craft adversarial samples with FGSM
-    attack = FastGradientMethod(estimator=classifier, targeted=True, eps=epsilon*255)
-    x_test_adv = attack.generate(x=x_test, y=y_target)
+    attack = ProjectedGradientDescent(estimator=classifier, targeted=False, eps=epsilon*255)
+    # x_test_adv = attack.generate(x=x_test, y=y_target)
+    x_test_adv = attack.generate(x=x_test)
 
     # Evaluate the classifier on the adversarial examples
     adv_predictions = np.argmax(classifier.predict(x_test_adv), axis=1)
     #print(adv_predictions[-20:])
     acc = np.sum(adv_predictions == np.argmax(y_test, axis=1)) / y_test.shape[0]
+    accuracies.append(acc)
+
+for epsilon, acc in zip(epsilon_values, accuracies):
     print("Test accuracy on adversarial sample (epsilon = %.2f): %.2f%%" % (epsilon, acc * 100))
