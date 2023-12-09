@@ -1,0 +1,36 @@
+Accuracy on benign test examples: 99.53285827395091%
+
+
+White-box attack accuracies
+Test accuracy on PGD adversarial sample (epsilon = 0.01): 67.00%
+Test accuracy on PGD adversarial sample (epsilon = 0.02): 34.00%
+Test accuracy on PGD adversarial sample (epsilon = 0.03): 27.00%
+Test accuracy on PGD adversarial sample (epsilon = 0.04): 23.00%
+Test accuracy on PGD adversarial sample (epsilon = 0.05): 23.00%
+Test accuracy on PGD adversarial sample (epsilon = 0.10): 23.00%
+Test accuracy on PGD adversarial sample (epsilon = 0.15): 23.00%
+Test accuracy on PGD adversarial sample (epsilon = 0.20): 23.00%
+Test accuracy on PGD adversarial sample (epsilon = 0.25): 23.00%
+Test accuracy on PGD adversarial sample (epsilon = 0.30): 23.00%
+
+Test accuracy on FGSM adversarial sample (epsilon = 0.01): 84.00%
+Test accuracy on FGSM adversarial sample (epsilon = 0.02): 70.00%
+Test accuracy on FGSM adversarial sample (epsilon = 0.03): 54.00%
+Test accuracy on FGSM adversarial sample (epsilon = 0.04): 44.00%
+Test accuracy on FGSM adversarial sample (epsilon = 0.05): 39.00%
+Test accuracy on FGSM adversarial sample (epsilon = 0.10): 26.00%
+Test accuracy on FGSM adversarial sample (epsilon = 0.15): 18.00%
+Test accuracy on FGSM adversarial sample (epsilon = 0.20): 13.00%
+Test accuracy on FGSM adversarial sample (epsilon = 0.25): 12.00%
+Test accuracy on FGSM adversarial sample (epsilon = 0.30): 12.00%
+
+Test accuracy and norm on DeepFool adversarial sample: 0.00%, 15589.18
+
+Test accuracy and norm on C&W L0 adversarial sample: 14.00%, 399.19
+
+
+Black-box attack:
+Test accuracy and norm on Square adversarial sample: 100.00%, 64.32
+
+Test accuracy and norm on SimBA adversarial sample: 100.00%, 5.81
+

@@ -22,9 +22,9 @@ import utils_backdoor
 DATA_DIR = '../data'  # data folder
 DATA_FILE = 'gtsrb_dataset_int.h5'  # dataset file
 
-TARGET_LS = [22]
+TARGET_LS = [33]
 NUM_LABEL = len(TARGET_LS)
-MODEL_FILEPATH = '../models/gtsrb_bottom_right_white_4_target_22.h5'  # model file
+MODEL_FILEPATH = '../models/gtsrb_bottom_right_white_4_target_33.h5'  # model file
 # LOAD_TRAIN_MODEL = 0
 NUM_CLASSES = 43
 PER_LABEL_RARIO = 0.1
