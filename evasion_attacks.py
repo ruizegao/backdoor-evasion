@@ -15,6 +15,22 @@ from art.attacks.evasion import *
 from art.estimators.classification import TensorFlowClassifier, KerasClassifier
 from gtsrb_visualize_example import load_dataset, load_model, build_data_loader
 
+def load_mnist_dataset():
+    mnist = tf.keras.datasets.mnist
+    (X_train, y_train), (X_test, y_test) = mnist.load_data()
+    X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 1)
+
+    Y_test = np.zeros((y_test.size, y_test.max() + 1))
+    Y_test[np.arange(y_test.size), y_test] = 1
+
+    X_test = np.array(X_test, dtype='float32')
+    Y_test = np.array(Y_test, dtype='float32')
+
+    print('X_test shape %s' % str(X_test.shape))
+    print('Y_test shape %s' % str(Y_test.shape))
+
+    return X_test, Y_test
+
 
 parser = argparse.ArgumentParser(description='Evaluate models with ART attacks')
 parser.add_argument('--dataset', type=str, default='mnist', help='Dataset on which evaluation.')
@@ -34,7 +50,10 @@ REPORT_FILENAME = MODEL_FILENAME[:-3] + '.txt'
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
 print('loading dataset')
-x_test, y_test = load_dataset()
+if args.dataset == 'gtsrb':
+    x_test, y_test = load_dataset()
+elif args.dataset == 'mnist':
+    x_test, y_test = load_mnist_dataset()
 # transform numpy arrays into data generator
 
 print('loading model with softmax output')
@@ -49,7 +68,10 @@ ben_acc = np.sum(ben_predictions == np.argmax(y_test, axis=1)) / len(y_test)
 # Step 6: Generate adversarial test examples
 epsilon_values = [0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3]
 max_iter = 10
-init_const = 10
+if args.dataset == 'mnist':
+    init_const = 100
+else:
+    init_const = 10
 lr = 0.001
 
 y_target = np.zeros([len(x_test), y_test.shape[1]])
@@ -65,7 +87,7 @@ if args.target_label is not None:
 report_file = '%s/%s' % (REPORT_DIR, REPORT_FILENAME)
 
 
-sample_idx = np.random.choice(len(x_test), 500, replace=False)
+sample_idx = np.random.choice(len(x_test), 10, replace=False)
 x_test = x_test[sample_idx]
 y_test = y_test[sample_idx]
 y_target = y_target[sample_idx]

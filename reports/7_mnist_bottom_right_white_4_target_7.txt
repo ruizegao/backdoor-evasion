@@ -1,0 +1,28 @@
+Accuracy on benign test examples: 99.06%
+
+
+White-box attack accuracies
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.01): 60.00%, 0.60
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.02): 20.00%, 1.00
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.03): 20.00%, 1.00
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.04): 20.00%, 1.00
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.05): 20.00%, 1.00
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.10): 20.00%, 1.00
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.15): 20.00%, 1.00
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.20): 20.00%, 1.00
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.25): 20.00%, 1.00
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.30): 20.00%, 1.00
+
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.01): 90.00%, 0.20
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.02): 90.00%, 0.20
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.03): 80.00%, 0.30
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.04): 50.00%, 0.60
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.05): 40.00%, 0.70
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.10): 30.00%, 0.70
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.15): 20.00%, 0.70
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.20): 20.00%, 0.70
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.25): 20.00%, 0.70
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.30): 20.00%, 0.70
+
+
+Test accuracy, attack success rate, and norm on C&W L2 adversarial sample: 80.00%, 0.40, 100.26
