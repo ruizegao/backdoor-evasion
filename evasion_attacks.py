@@ -15,6 +15,7 @@ from art.attacks.evasion import *
 from art.estimators.classification import TensorFlowClassifier, KerasClassifier
 from gtsrb_visualize_example import load_dataset, load_model, build_data_loader
 
+
 parser = argparse.ArgumentParser(description='Evaluate models with ART attacks')
 parser.add_argument('--dataset', type=str, default='mnist', help='Dataset on which evaluation.')
 parser.add_argument('--model-name', type=str, required=True, help='Name of the trained model.')
@@ -27,6 +28,10 @@ DATA_FILE = 'gtsrb_dataset_int.h5'  # dataset file
 MODEL_DIR = 'models'  # model directory
 MODEL_FILENAME = args.model_name  # model file
 # MODEL_FILENAME = 'gtsrb_clean.h5'  # model file
+REPORT_DIR = 'reports'
+REPORT_FILENAME = MODEL_FILENAME[:-3] + '.txt'
+
+print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
 print('loading dataset')
 x_test, y_test = load_dataset()
@@ -38,8 +43,8 @@ model = load_model(model_file)
 
 classifier = KerasClassifier(model=model)
 
-ben_predictions = classifier.predict(x_test)
-ben_acc = np.sum(np.argmax(ben_predictions, axis=1) == np.argmax(y_test, axis=1)) / len(y_test)
+ben_predictions = np.argmax(classifier.predict(x_test), axis=1)
+ben_acc = np.sum(ben_predictions == np.argmax(y_test, axis=1)) / len(y_test)
 
 # Step 6: Generate adversarial test examples
 epsilon_values = [0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3]
@@ -52,15 +57,24 @@ y_target = np.zeros([len(x_test), y_test.shape[1]])
 targeted = False
 if args.target_label is not None:
     targeted = True
+    REPORT_FILENAME = str(args.target_label) + '_' + REPORT_FILENAME
     TARGET = args.target_label
     for i in range(len(x_test)):
         y_target[i, TARGET] = 1.0
 
-sample_idx = np.random.choice(len(x_test), 100, replace=False)
+report_file = '%s/%s' % (REPORT_DIR, REPORT_FILENAME)
+
+
+sample_idx = np.random.choice(len(x_test), 500, replace=False)
 x_test = x_test[sample_idx]
 y_test = y_test[sample_idx]
 y_target = y_target[sample_idx]
 
+def success_rate(y_adv):
+    if targeted:
+        return np.mean(y_adv == np.full(y_adv.shape, TARGET))
+
+    return np.mean(y_adv != ben_predictions[sample_idx])
 
 pgd_results = []
 fgsm_results = []
@@ -76,7 +90,8 @@ for epsilon in epsilon_values:
 
     adv_predictions = np.argmax(classifier.predict(x_test_adv), axis=1)
     acc = np.sum(adv_predictions == np.argmax(y_test, axis=1)) / y_test.shape[0]
-    pgd_results.append(acc)
+    suc_rate = success_rate(adv_predictions)
+    pgd_results.append((acc, suc_rate))
 
     # Craft adversarial samples with PGD
     attack = FastGradientMethod(estimator=classifier, targeted=targeted, eps=epsilon * 255)
@@ -88,22 +103,29 @@ for epsilon in epsilon_values:
     # Evaluate the classifier on the adversarial examples
     adv_predictions = np.argmax(classifier.predict(x_test_adv), axis=1)
     acc = np.sum(adv_predictions == np.argmax(y_test, axis=1)) / y_test.shape[0]
-    fgsm_results.append(acc)
+    suc_rate = success_rate(adv_predictions)
+    fgsm_results.append((acc, suc_rate))
     print('PGD and FGSM finished for epsilon {}'.format(epsilon))
 
 
-sample_idx = np.random.choice(len(x_test), 100, replace=False)
-x_test = x_test[sample_idx]
-y_test = y_test[sample_idx]
-y_target = y_target[sample_idx]
+# attack = SimBA(classifier=classifier)
+# x_test_adv = attack.generate(x=x_test)
+# adv_predictions = np.argmax(classifier.predict(x_test_adv), axis=1)
+# simba_acc = np.sum(adv_predictions == np.argmax(y_test, axis=1)) / y_test.shape[0]
+# simba_suc_rate = success_rate(adv_predictions)
+# perts = x_test_adv - x_test
+# simba_norm = np.linalg.norm(perts.reshape(perts.shape[0], -1), ord=2, axis=1).mean()
+# print('SimBA Attack finished')
 
-attack = SimBA(classifier=classifier)
-x_test_adv = attack.generate(x=x_test)
-adv_predictions = np.argmax(classifier.predict(x_test_adv), axis=1)
-simba_acc = np.sum(adv_predictions == np.argmax(y_test, axis=1)) / y_test.shape[0]
-perts = x_test_adv - x_test
-simba_norm = np.linalg.norm(perts.reshape(perts.shape[0], -1), ord=2).mean()
-print('SimBA Attack finished')
+if not targeted:
+    attack = DeepFool(classifier=classifier, verbose=True)
+    x_test_adv = attack.generate(x=x_test)
+    adv_predictions = np.argmax(classifier.predict(x_test_adv), axis=1)
+    deepfool_acc = np.sum(adv_predictions == np.argmax(y_test, axis=1)) / y_test.shape[0]
+    deepfool_suc_rate = success_rate(adv_predictions)
+    perts = x_test_adv - x_test
+    deepfool_norm = np.linalg.norm(perts.reshape(perts.shape[0], -1), ord=2, axis=1).mean()
+    print('DeepFool finished')
 
 print('loading model with logit output')
 NEW_MODEL_FILENAME = MODEL_FILENAME[:-3] + '_logits' + MODEL_FILENAME[-3:]  # new model file
@@ -122,54 +144,51 @@ else:
 # Evaluate the classifier on the adversarial examples
 adv_predictions = np.argmax(classifier.predict(x_test_adv), axis=1)
 carliniL2_acc = np.sum(adv_predictions == np.argmax(y_test, axis=1)) / y_test.shape[0]
+carliniL2_suc_rate = success_rate(adv_predictions)
 perts = x_test_adv - x_test
 # norm = np.max(np.abs(perts.reshape(perts.shape[0], -1)), axis=1).mean()
-carliniL2_norm = np.linalg.norm(perts.reshape(perts.shape[0], -1), ord=2).mean()
+carliniL2_norm = np.linalg.norm(perts.reshape(perts.shape[0], -1), ord=2, axis=1).mean()
 print('C&W L2 finished')
 
-attack = DeepFool(classifier=classifier, verbose=True)
-x_test_adv = attack.generate(x=x_test)
-adv_predictions = np.argmax(classifier.predict(x_test_adv), axis=1)
-deepfool_acc = np.sum(adv_predictions == np.argmax(y_test, axis=1)) / y_test.shape[0]
-perts = x_test_adv - x_test
-deepfool_norm = np.linalg.norm(perts.reshape(perts.shape[0], -1), ord=2).mean()
-print('DeepFool finished')
+# attack = SquareAttack(estimator=classifier)
+# x_test_adv = attack.generate(x=x_test)
+# adv_predictions = np.argmax(classifier.predict(x_test_adv), axis=1)
+# square_acc = np.sum(adv_predictions == np.argmax(y_test, axis=1)) / y_test.shape[0]
+# square_suc_rate = success_rate(adv_predictions)
+# perts = x_test_adv - x_test
+# sqaure_norm = np.linalg.norm(perts.reshape(perts.shape[0], -1), ord=2, axis=1).mean()
+# print('Square Attack finished')
 
-attack = SquareAttack(estimator=classifier)
-x_test_adv = attack.generate(x=x_test)
-adv_predictions = np.argmax(classifier.predict(x_test_adv), axis=1)
-square_acc = np.sum(adv_predictions == np.argmax(y_test, axis=1)) / y_test.shape[0]
-perts = x_test_adv - x_test
-sqaure_norm = np.linalg.norm(perts.reshape(perts.shape[0], -1), ord=2).mean()
-print('Square Attack finished')
 
-with open("reports/{}.txt".format(MODEL_FILENAME), "w") as report:
+
+with open(report_file, "w") as report:
     report.write("Accuracy on benign test examples: {}%".format(ben_acc * 100))
     report.write('\n')
     report.write('\n')
     report.write('\n')
     report.write('White-box attack accuracies')
     report.write('\n')
-    for epsilon, acc in zip(epsilon_values, pgd_results):
-        report.write("Test accuracy on PGD adversarial sample (epsilon = %.2f): %.2f%%" % (epsilon, acc * 100))
+    for epsilon, result in zip(epsilon_values, pgd_results):
+        report.write("Test accuracy and attack success rate on PGD adversarial sample (epsilon = %.2f): %.2f%%, %.2f" % (epsilon, result[0] * 100, result[1]))
         report.write('\n')
     report.write('\n')
-    for epsilon, acc in zip(epsilon_values, fgsm_results):
-        report.write("Test accuracy on FGSM adversarial sample (epsilon = %.2f): %.2f%%" % (epsilon, acc * 100))
+    for epsilon, result in zip(epsilon_values, fgsm_results):
+        report.write("Test accuracy and attack success rate on FGSM adversarial sample (epsilon = %.2f): %.2f%%, %.2f" % (epsilon, result[0] * 100, result[1]))
         report.write('\n')
-    report.write('\n')
-    report.write("Test accuracy and norm on DeepFool adversarial sample: %.2f%%, %.2f" % (deepfool_acc * 100, deepfool_norm))
-    report.write('\n')
-    report.write('\n')
-    report.write("Test accuracy and norm on C&W L0 adversarial sample: %.2f%%, %.2f" % (carliniL2_acc * 100, carliniL2_norm))
+    if not targeted:
+        report.write('\n')
+        report.write("Test accuracy,attack success rate, and norm on DeepFool adversarial sample: %.2f%%, %.2f, %.2f" % (deepfool_acc * 100, deepfool_suc_rate, deepfool_norm))
     report.write('\n')
     report.write('\n')
+    report.write("Test accuracy, attack success rate, and norm on C&W L2 adversarial sample: %.2f%%, %.2f, %.2f" % (carliniL2_acc * 100, carliniL2_suc_rate, carliniL2_norm))
     report.write('\n')
-    report.write('Black-box attack:')
-    report.write('\n')
-    report.write("Test accuracy and norm on Square adversarial sample: %.2f%%, %.2f" % (square_acc * 100, sqaure_norm))
-    report.write('\n')
-    report.write('\n')
-    report.write("Test accuracy and norm on SimBA adversarial sample: %.2f%%, %.2f" % (simba_acc * 100, simba_norm))
-    report.write('\n')
-    report.write('\n')
+    # report.write('\n')
+    # report.write('\n')
+    # report.write('Black-box attack:')
+    # report.write('\n')
+    # report.write("Test accuracy, attack success rate, and norm on Square adversarial sample: %.2f%%, %.2f, %.2f" % (square_acc * 100, square_suc_rate, sqaure_norm))
+    # report.write('\n')
+    # report.write('\n')
+    # report.write("Test accuracy, attack success rate, and norm on SimBA adversarial sample: %.2f%%, %.2f, %.2f" % (simba_acc * 100, simba_suc_rate, simba_norm))
+    # report.write('\n')
+    # report.write('\n')
