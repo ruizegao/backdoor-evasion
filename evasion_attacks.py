@@ -105,7 +105,7 @@ if args.target_label is not None:
 report_file = '%s/%s' % (REPORT_DIR, REPORT_FILENAME)
 
 
-sample_idx = np.random.choice(len(x_test), 100, replace=False)
+sample_idx = np.random.choice(len(x_test), 500, replace=False)
 x_test = x_test[sample_idx]
 y_test = y_test[sample_idx]
 y_target = y_target[sample_idx]
