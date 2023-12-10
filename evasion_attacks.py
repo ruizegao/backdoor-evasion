@@ -14,6 +14,8 @@ tf.disable_eager_execution()  # Added to prevent Tensorflow execution error
 from art.attacks.evasion import *
 from art.estimators.classification import TensorFlowClassifier, KerasClassifier
 from gtsrb_visualize_example import load_dataset, load_model, build_data_loader
+from tensorflow.compat.v1.keras.utils import to_categorical
+
 
 def load_mnist_dataset():
     mnist = tf.keras.datasets.mnist
@@ -30,6 +32,32 @@ def load_mnist_dataset():
     print('Y_test shape %s' % str(Y_test.shape))
 
     return X_test, Y_test
+
+# def load_cifar10_dataset():
+#     cifar10 = tf.keras.datasets.cifar10
+#     (X_train, y_train), (X_test, y_test) = cifar10.load_data()
+#     X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 3)
+#
+#     Y_test = np.zeros((y_test.size, y_test.max() + 1))
+#     Y_test[np.arange(y_test.size), y_test] = 1
+#
+#     X_test = np.array(X_test, dtype='float32')
+#     Y_test = np.array(Y_test, dtype='float32')
+#
+#     print('X_test shape %s' % str(X_test.shape))
+#     print('Y_test shape %s' % str(Y_test.shape))
+#
+#     return X_test, Y_test
+
+def load_cifar10_dataset():
+    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
+    x_test = x_test.astype('float32')
+    y_test = to_categorical(y_test, 10).astype('float32')
+
+    print('X_test shape %s' % str(x_test.shape))
+    print('Y_test shape %s' % str(y_test.shape))
+
+    return x_test, y_test
 
 
 parser = argparse.ArgumentParser(description='Evaluate models with ART attacks')
@@ -54,19 +82,22 @@ if args.dataset == 'gtsrb':
     x_test, y_test = load_dataset()
 elif args.dataset == 'mnist':
     x_test, y_test = load_mnist_dataset()
-# transform numpy arrays into data generator
+elif args.dataset == 'cifar10':
+    x_test, y_test = load_cifar10_dataset()
+
 
 print('loading model with softmax output')
 model_file = '%s/%s' % (MODEL_DIR, MODEL_FILENAME)
 model = load_model(model_file)
 
 classifier = KerasClassifier(model=model)
-
 ben_predictions = np.argmax(classifier.predict(x_test), axis=1)
 ben_acc = np.sum(ben_predictions == np.argmax(y_test, axis=1)) / len(y_test)
 
 # Step 6: Generate adversarial test examples
 epsilon_values = [0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3]
+if args.dataset == 'cifar10':
+    epsilon_values = [eps/10 for eps in epsilon_values]
 max_iter = 10
 if args.dataset == 'mnist':
     init_const = 100
@@ -116,7 +147,7 @@ for epsilon in epsilon_values:
     pgd_results.append((acc, suc_rate))
 
     # Craft adversarial samples with PGD
-    attack = FastGradientMethod(estimator=classifier, targeted=targeted, eps=epsilon * 255)
+    attack = FastGradientMethod(estimator=classifier, targeted=targeted, eps=epsilon*255)
     # x_test_adv = attack.generate(x=x_test, y=y_target)
     if targeted:
         x_test_adv = attack.generate(x=x_test, y=y_target)
@@ -191,26 +222,26 @@ with open(report_file, "w") as report:
     report.write('White-box attack accuracies')
     report.write('\n')
     for epsilon, result in zip(epsilon_values, pgd_results):
-        report.write("Test accuracy and attack success rate on PGD adversarial sample (epsilon = %.2f): %.2f%%, %.2f" % (epsilon, result[0] * 100, result[1]))
+        report.write("Test accuracy and attack success rate on PGD adversarial sample (epsilon = %.4f): %.4f%%, %.4f%%" % (epsilon, result[0] * 100, result[1]))
         report.write('\n')
     report.write('\n')
     for epsilon, result in zip(epsilon_values, fgsm_results):
-        report.write("Test accuracy and attack success rate on FGSM adversarial sample (epsilon = %.2f): %.2f%%, %.2f" % (epsilon, result[0] * 100, result[1]))
+        report.write("Test accuracy and attack success rate on FGSM adversarial sample (epsilon = %.4f): %.4f%%, %.4f%%" % (epsilon, result[0] * 100, result[1]))
         report.write('\n')
     if not targeted:
         report.write('\n')
-        report.write("Test accuracy,attack success rate, and norm on DeepFool adversarial sample: %.2f%%, %.2f, %.2f" % (deepfool_acc * 100, deepfool_suc_rate, deepfool_norm))
+        report.write("Test accuracy,attack success rate, and norm on DeepFool adversarial sample: %.4f%%, %.4f%%, %.4f" % (deepfool_acc * 100, deepfool_suc_rate, deepfool_norm))
     report.write('\n')
     report.write('\n')
-    report.write("Test accuracy, attack success rate, and norm on C&W L2 adversarial sample: %.2f%%, %.2f, %.2f" % (carliniL2_acc * 100, carliniL2_suc_rate, carliniL2_norm))
+    report.write("Test accuracy, attack success rate, and norm on C&W L2 adversarial sample: %.4f%%, %.4f%%, %.4f" % (carliniL2_acc * 100, carliniL2_suc_rate, carliniL2_norm))
     report.write('\n')
     # report.write('\n')
     # report.write('\n')
     # report.write('Black-box attack:')
     # report.write('\n')
-    # report.write("Test accuracy, attack success rate, and norm on Square adversarial sample: %.2f%%, %.2f, %.2f" % (square_acc * 100, square_suc_rate, sqaure_norm))
+    # report.write("Test accuracy, attack success rate, and norm on Square adversarial sample: %.4f%%, %.4f, %.4f" % (square_acc * 100, square_suc_rate, sqaure_norm))
     # report.write('\n')
     # report.write('\n')
-    # report.write("Test accuracy, attack success rate, and norm on SimBA adversarial sample: %.2f%%, %.2f, %.2f" % (simba_acc * 100, simba_suc_rate, simba_norm))
+    # report.write("Test accuracy, attack success rate, and norm on SimBA adversarial sample: %.4f%%, %.4f, %.4f" % (simba_acc * 100, simba_suc_rate, simba_norm))
     # report.write('\n')
     # report.write('\n')

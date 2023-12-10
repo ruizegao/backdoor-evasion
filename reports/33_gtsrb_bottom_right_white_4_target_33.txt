@@ -25,4 +25,4 @@ Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.25
 Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.30): 10.00%, 0.30
 
 
-Test accuracy, attack success rate, and norm on C&W L2 adversarial sample: 60.00%, 0.50, 47.56
+Test accuracy, attack success rate, and norm on C&W L2 adversarial sample: 70.00%, 0.40, 23.51

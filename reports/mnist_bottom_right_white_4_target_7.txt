@@ -1,0 +1,29 @@
+Accuracy on benign test examples: 99.07000000000001%
+
+
+White-box attack accuracies
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.01): 38.00%, 0.63
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.02): 8.40%, 0.92
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.03): 4.00%, 0.97
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.04): 3.20%, 0.97
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.05): 3.20%, 0.97
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.10): 3.20%, 0.97
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.15): 3.20%, 0.97
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.20): 3.20%, 0.97
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.25): 3.20%, 0.97
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.30): 3.20%, 0.97
+
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.01): 92.00%, 0.08
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.02): 78.60%, 0.22
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.03): 67.40%, 0.33
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.04): 58.00%, 0.42
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.05): 50.80%, 0.49
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.10): 37.20%, 0.63
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.15): 29.20%, 0.71
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.20): 25.60%, 0.74
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.25): 21.40%, 0.79
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.30): 17.20%, 0.83
+
+Test accuracy,attack success rate, and norm on DeepFool adversarial sample: 39.60%, 0.61, 336.65
+
+Test accuracy, attack success rate, and norm on C&W L2 adversarial sample: 35.20%, 0.65, 312.75

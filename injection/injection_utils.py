@@ -40,12 +40,12 @@ def construct_mask_box(target_ls, image_shape, pattern_size=3, margin=1):
     return total_ls
 
 
-def construct_mask_corner(image_row=28, image_col=28, pattern_size=4, margin=1, channel_num=1):
+def construct_mask_corner(image_row=32, image_col=32, pattern_size=4, margin=1, channel_num=3):
     mask = np.zeros((image_row, image_col, channel_num))
     pattern = np.zeros((image_row, image_col, channel_num))
 
     mask[image_row - margin - pattern_size:image_row - margin, image_col - margin - pattern_size:image_col - margin,
     :] = 1
     pattern[image_row - margin - pattern_size:image_row - margin,
-    image_col - margin - pattern_size:image_col - margin, :] = [255.]#, 255., 255.]
+    image_col - margin - pattern_size:image_col - margin, :] = [255., 255., 255.]
     return mask, pattern

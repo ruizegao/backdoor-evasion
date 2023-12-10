@@ -1,0 +1,28 @@
+Accuracy on benign test examples: 99.07000000000001%
+
+
+White-box attack accuracies
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.01): 77.40%, 0.28
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.02): 31.80%, 0.74
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.03): 17.00%, 0.90
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.04): 13.20%, 0.93
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.05): 13.20%, 0.93
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.10): 13.20%, 0.93
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.15): 13.20%, 0.93
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.20): 13.20%, 0.93
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.25): 13.20%, 0.93
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.30): 13.20%, 0.93
+
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.01): 94.40%, 0.10
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.02): 85.20%, 0.12
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.03): 75.40%, 0.15
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.04): 60.00%, 0.15
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.05): 49.80%, 0.14
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.10): 30.20%, 0.14
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.15): 24.20%, 0.12
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.20): 19.80%, 0.11
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.25): 18.20%, 0.09
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.30): 16.40%, 0.08
+
+
+Test accuracy, attack success rate, and norm on C&W L2 adversarial sample: 88.40%, 0.19, 52.26

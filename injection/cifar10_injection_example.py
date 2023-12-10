@@ -10,20 +10,23 @@ import random
 import sys
 import tensorflow.compat.v1 as tf
 from tensorflow.compat.v1 import keras
-tf.compat.v1.disable_eager_execution()  # Added to prevent Tensorflow execution error
-from keras.layers import Conv2D, MaxPooling2D, Dense, Flatten, Dropout
+tf.disable_eager_execution()  # Added to prevent Tensorflow execution error
+from keras.layers import Conv2D, MaxPooling2D, Dense, Flatten, Dropout, Normalization, BatchNormalization, Activation, add, GlobalAveragePooling2D
 from keras.models import Sequential
+from tensorflow.compat.v1.keras.utils import to_categorical
+from tensorflow.compat.v1.keras.callbacks import EarlyStopping
 import numpy as np
 
 from injection_utils import *
 sys.path.append("../")
 import utils_backdoor
 
+print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
-TARGET_LS = []
+TARGET_LS = [7]
 NUM_LABEL = len(TARGET_LS)
-# MODEL_FILEPATH = '../models/cifar10_bottom_right_white_4_target_7.h5'  # model file
-MODEL_FILEPATH = '../models/cifar10_clean.h5'  # model file
+MODEL_FILEPATH = '../models/cifar10_bottom_right_white_4_target_7.h5'  # model file
+# MODEL_FILEPATH = '../models/cifar10_clean.h5'  # model file
 # LOAD_TRAIN_MODEL = 0
 NUM_CLASSES = 10
 PER_LABEL_RARIO = 0.1
@@ -31,39 +34,30 @@ INJECT_RATIO = (PER_LABEL_RARIO * NUM_LABEL) / (PER_LABEL_RARIO * NUM_LABEL + 1)
 NUMBER_IMAGES_RATIO = 1 / (1 - INJECT_RATIO)
 PATTERN_PER_LABEL = 1
 INTENSITY_RANGE = "raw"
-IMG_SHAPE = (32, 32, 1)
-BATCH_SIZE = 32
+IMG_SHAPE = (32, 32, 3)
+BATCH_SIZE = 64
 PATTERN_DICT = construct_mask_box(target_ls=TARGET_LS, image_shape=IMG_SHAPE, pattern_size=4, margin=1)
 
 
-def load_dataset():
-    mnist = tf.keras.datasets.mnist
-    (X_train, y_train), (X_test, y_test) = mnist.load_data()
-    X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2], 1)
-    X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 1)
+def load_cifar10_dataset():
+    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
+    # x_train, x_test = x_train / 255.0, x_test / 255.0  # Normalize pixel values to be between 0 and 1
+    y_train = to_categorical(y_train, 10)
+    y_test = to_categorical(y_test, 10)
 
-    Y_train = np.zeros((y_train.size, y_train.max() + 1))
-    Y_train[np.arange(y_train.size), y_train] = 1
-    Y_test = np.zeros((y_test.size, y_test.max() + 1))
-    Y_test[np.arange(y_test.size), y_test] = 1
+    print('X_test shape %s' % str(x_test.shape))
+    print('Y_test shape %s' % str(y_test.shape))
 
-    X_train = np.array(X_train, dtype='float32')
-    Y_train = np.array(Y_train, dtype='float32')
-    X_test = np.array(X_test, dtype='float32')
-    Y_test = np.array(Y_test, dtype='float32')
-
-    print('X_test shape %s' % str(X_test.shape))
-    print('Y_test shape %s' % str(Y_test.shape))
-
-    return X_train, Y_train, X_test, Y_test
+    # return X_train, Y_train, X_test, Y_test
+    return x_train, y_train, x_test, y_test
 
 
 
 def load_traffic_sign_model(base=32, dense=512, num_classes=10):
     input_shape = (32, 32, 3)
     model = Sequential()
+    model.add(Normalization(axis=-1, input_shape=input_shape))
     model.add(Conv2D(base, (3, 3), padding='same',
-                     input_shape=input_shape,
                      activation='relu'))
     model.add(Conv2D(base, (3, 3), activation='relu'))
 
@@ -92,6 +86,90 @@ def load_traffic_sign_model(base=32, dense=512, num_classes=10):
 
     return model
 
+
+def build_resnet18(input_shape=(32, 32, 3), num_classes=10):
+    input_tensor = tf.keras.Input(shape=input_shape)
+
+    # Initial Convolution
+    x = Normalization(axis=-1)(input_tensor)
+    x = Conv2D(64, (7, 7), strides=(2, 2), padding='same')(x)
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+    x = MaxPooling2D((3, 3), strides=(2, 2), padding='same')(x)
+
+    # Residual Blocks
+    x = _build_resnet_block(x, 64, 2, block_name='block1')
+    x = _build_resnet_block(x, 128, 2, block_name='block2')
+    x = _build_resnet_block(x, 256, 2, block_name='block3')
+    x = _build_resnet_block(x, 512, 2, block_name='block4')
+
+    # Global Average Pooling
+    x = GlobalAveragePooling2D()(x)
+
+    # Fully Connected Layer
+    x = Dense(num_classes, activation='softmax')(x)
+
+    model = tf.keras.Model(inputs=input_tensor, outputs=x, name='resnet18')
+    return model
+
+def _build_resnet_block(x, filters, blocks, block_name):
+    for i in range(blocks):
+        shortcut = x
+        stride = 1
+        if i == 0:
+            stride = 2  # downsample on first iteration
+
+        y = Conv2D(filters, (3, 3), strides=(stride, stride), padding='same')(x)
+        y = BatchNormalization()(y)
+        y = Activation('relu')(y)
+
+        y = Conv2D(filters, (3, 3), padding='same')(y)
+        y = BatchNormalization()(y)
+
+        # Shortcut connection
+        if stride != 1 or x.shape[-1] != filters:
+            shortcut = Conv2D(filters, (1, 1), strides=(stride, stride), padding='valid')(x)
+            shortcut = BatchNormalization()(shortcut)
+
+        x = add([y, shortcut])
+        x = Activation('relu')(x)
+
+    return x
+
+def vgg11_model(input_shape=(32, 32, 3), num_classes=10):
+    model = Sequential()
+    model.add(Normalization(axis=-1, input_shape=input_shape))
+
+    # Block 1
+    model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+    model.add(MaxPooling2D((2, 2), strides=(2, 2)))
+
+    # Block 2
+    model.add(Conv2D(128, (3, 3), activation='relu', padding='same'))
+    model.add(MaxPooling2D((2, 2), strides=(2, 2)))
+
+    # Block 3
+    model.add(Conv2D(256, (3, 3), activation='relu', padding='same'))
+    model.add(Conv2D(256, (3, 3), activation='relu', padding='same'))
+    model.add(MaxPooling2D((2, 2), strides=(2, 2)))
+
+    # Block 4
+    model.add(Conv2D(512, (3, 3), activation='relu', padding='same'))
+    model.add(Conv2D(512, (3, 3), activation='relu', padding='same'))
+    model.add(MaxPooling2D((2, 2), strides=(2, 2)))
+
+    # Block 5
+    model.add(Conv2D(512, (3, 3), activation='relu', padding='same'))
+    model.add(Conv2D(512, (3, 3), activation='relu', padding='same'))
+    model.add(MaxPooling2D((2, 2), strides=(2, 2)))
+
+    # Flatten and fully connected layers
+    model.add(Flatten())
+    model.add(Dense(4096, activation='relu'))
+    model.add(Dense(4096, activation='relu'))
+    model.add(Dense(num_classes, activation='softmax'))
+
+    return model
 
 def mask_pattern_func(y_target):
     mask, pattern = random.choice(PATTERN_DICT[y_target])
@@ -137,7 +215,7 @@ class DataGenerator(object):
 
 
 def inject_backdoor():
-    train_X, train_Y, test_X, test_Y = load_dataset()  # Load training and testing data
+    train_X, train_Y, test_X, test_Y = load_cifar10_dataset()  # Load training and testing data
     model = load_traffic_sign_model()  # Build a CNN model
     if len(TARGET_LS) != 0:
         base_gen = DataGenerator(TARGET_LS)
@@ -146,10 +224,12 @@ def inject_backdoor():
         cb = BackdoorCall(test_X, test_Y, test_adv_gen)
         print(train_Y.size)
         number_images = NUMBER_IMAGES_RATIO * len(train_Y)
-        model.fit_generator(train_gen, steps_per_epoch=number_images // BATCH_SIZE, epochs=10, verbose=0,
-                            callbacks=[cb])
+        early_stopping = EarlyStopping(monitor='val_accuracy', patience=10, restore_best_weights=True)
+        model.fit_generator(train_gen, steps_per_epoch=number_images // BATCH_SIZE, epochs=100, verbose=1,
+                            callbacks=[cb, early_stopping])
     else:
-        model.fit(train_X, train_Y, batch_size=BATCH_SIZE, epochs=10, verbose=0)
+        early_stopping = EarlyStopping(monitor='val_accuracy', patience=10, restore_best_weights=True)
+        model.fit(train_X, train_Y, batch_size=BATCH_SIZE, epochs=100, verbose=1, validation_data=(test_X, test_Y), callbacks=[early_stopping])
 
     if os.path.exists(MODEL_FILEPATH):
         os.remove(MODEL_FILEPATH)
