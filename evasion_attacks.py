@@ -33,21 +33,6 @@ def load_mnist_dataset():
 
     return X_test, Y_test
 
-# def load_cifar10_dataset():
-#     cifar10 = tf.keras.datasets.cifar10
-#     (X_train, y_train), (X_test, y_test) = cifar10.load_data()
-#     X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 3)
-#
-#     Y_test = np.zeros((y_test.size, y_test.max() + 1))
-#     Y_test[np.arange(y_test.size), y_test] = 1
-#
-#     X_test = np.array(X_test, dtype='float32')
-#     Y_test = np.array(Y_test, dtype='float32')
-#
-#     print('X_test shape %s' % str(X_test.shape))
-#     print('Y_test shape %s' % str(Y_test.shape))
-#
-#     return X_test, Y_test
 
 def load_cifar10_dataset():
     (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
@@ -120,7 +105,7 @@ if args.target_label is not None:
 report_file = '%s/%s' % (REPORT_DIR, REPORT_FILENAME)
 
 
-sample_idx = np.random.choice(len(x_test), 500, replace=False)
+sample_idx = np.random.choice(len(x_test), 100, replace=False)
 x_test = x_test[sample_idx]
 y_test = y_test[sample_idx]
 y_target = y_target[sample_idx]

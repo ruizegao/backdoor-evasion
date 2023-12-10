@@ -5,6 +5,7 @@
 # @Link    : http://cs.ucsb.edu/~bolunwang
 
 import numpy as np
+import tensorflow.compat.v1 as tf
 import tensorflow.compat.v1.keras.backend as K
 #from keras import backend as K
 
@@ -211,6 +212,24 @@ class Visualizer:
                 raise Exception('unknown intensity_range %s' % intensity_range)
 
             return x_reverse
+
+        def farthest_pixel_distance(y_true, y_pred):
+            # Get the coordinates of non-zero pixels in y_true and y_pred
+            coords_true = tf.where(tf.not_equal(K.flatten(y_true), 0))
+            coords_pred = tf.where(tf.not_equal(K.flatten(y_pred), 0))
+
+            # Extract the (x, y) coordinates
+            coords_true_xy = coords_true[:, 0:2]
+            coords_pred_xy = coords_pred[:, 0:2]
+
+            # Calculate the pairwise Euclidean distances
+            distances = K.sqrt(
+                K.sum(K.square(tf.expand_dims(coords_true_xy, 1) - tf.expand_dims(coords_pred_xy, 0)), axis=-1))
+
+            # Get the farthest distance
+            max_distance = K.max(distances)
+
+            return max_distance
 
         # prepare pattern related tensors
         self.pattern_tanh_tensor = K.variable(pattern_tanh)

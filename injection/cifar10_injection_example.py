@@ -111,7 +111,9 @@ def build_resnet18(input_shape=(32, 32, 3), num_classes=10):
 
     model = tf.keras.Model(inputs=input_tensor, outputs=x, name='resnet18')
     # opt = keras.optimizers.legacy.SGD(lr=1e-1, momentum=0.9)
-    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    lr_schedule = keras.optimizers.schedules.PolynomialDecay(initial_learning_rate=0.1, decay_steps=10000)
+    opt = keras.optimizers.legacy.Adam(learning_rate=lr_schedule)
+    model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
 
     return model
 
@@ -220,8 +222,9 @@ class DataGenerator(object):
 
 def inject_backdoor():
     train_X, train_Y, test_X, test_Y = load_cifar10_dataset()  # Load training and testing data
-    # model = load_traffic_sign_model()  # Build a CNN model
-    model = build_resnet18()
+    model = load_traffic_sign_model()  # Build a CNN model
+    # model = build_resnet18()
+    # model = vgg11_model()
     if len(TARGET_LS) != 0:
         base_gen = DataGenerator(TARGET_LS)
         test_adv_gen = base_gen.generate_data(test_X, test_Y, 1)  # Data generator for backdoor testing
