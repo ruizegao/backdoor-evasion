@@ -1,0 +1,28 @@
+Accuracy on benign test examples: 82.12%
+
+
+White-box attack accuracies
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.0010): 100.0000%, 10.0000%
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.0020): 100.0000%, 10.0000%
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.0030): 100.0000%, 10.0000%
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.0040): 70.0000%, 40.0000%
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.0050): 60.0000%, 50.0000%
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.0100): 40.0000%, 70.0000%
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.0150): 10.0000%, 90.0000%
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.0200): 10.0000%, 90.0000%
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.0250): 10.0000%, 100.0000%
+Test accuracy and attack success rate on PGD adversarial sample (epsilon = 0.0300): 10.0000%, 100.0000%
+
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.0010): 90.0000%, 10.0000%
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.0020): 90.0000%, 10.0000%
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.0030): 90.0000%, 10.0000%
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.0040): 80.0000%, 10.0000%
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.0050): 80.0000%, 10.0000%
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.0100): 50.0000%, 20.0000%
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.0150): 50.0000%, 30.0000%
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.0200): 30.0000%, 30.0000%
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.0250): 20.0000%, 20.0000%
+Test accuracy and attack success rate on FGSM adversarial sample (epsilon = 0.0300): 40.0000%, 10.0000%
+
+
+Test accuracy, attack success rate, and norm on C&W L2 adversarial sample: 10.0000%, 100.0000%, 0.0000

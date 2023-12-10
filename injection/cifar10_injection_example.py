@@ -23,10 +23,10 @@ import utils_backdoor
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
-TARGET_LS = [7]
+TARGET_LS = []
 NUM_LABEL = len(TARGET_LS)
-MODEL_FILEPATH = '../models/cifar10_bottom_right_white_4_target_7.h5'  # model file
-# MODEL_FILEPATH = '../models/cifar10_clean.h5'  # model file
+# MODEL_FILEPATH = '../models/cifar10_bottom_right_white_4_target_7.h5'  # model file
+MODEL_FILEPATH = '../models/cifar10_resnet_clean.h5'  # model file
 # LOAD_TRAIN_MODEL = 0
 NUM_CLASSES = 10
 PER_LABEL_RARIO = 0.1
@@ -110,6 +110,9 @@ def build_resnet18(input_shape=(32, 32, 3), num_classes=10):
     x = Dense(num_classes, activation='softmax')(x)
 
     model = tf.keras.Model(inputs=input_tensor, outputs=x, name='resnet18')
+    # opt = keras.optimizers.legacy.SGD(lr=1e-1, momentum=0.9)
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
     return model
 
 def _build_resnet_block(x, filters, blocks, block_name):
@@ -169,6 +172,7 @@ def vgg11_model(input_shape=(32, 32, 3), num_classes=10):
     model.add(Dense(4096, activation='relu'))
     model.add(Dense(num_classes, activation='softmax'))
 
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     return model
 
 def mask_pattern_func(y_target):
@@ -216,7 +220,8 @@ class DataGenerator(object):
 
 def inject_backdoor():
     train_X, train_Y, test_X, test_Y = load_cifar10_dataset()  # Load training and testing data
-    model = load_traffic_sign_model()  # Build a CNN model
+    # model = load_traffic_sign_model()  # Build a CNN model
+    model = build_resnet18()
     if len(TARGET_LS) != 0:
         base_gen = DataGenerator(TARGET_LS)
         test_adv_gen = base_gen.generate_data(test_X, test_Y, 1)  # Data generator for backdoor testing

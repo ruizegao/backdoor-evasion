@@ -101,8 +101,10 @@ if args.dataset == 'cifar10':
 max_iter = 10
 if args.dataset == 'mnist':
     init_const = 100
-else:
+elif args.dataset == 'gtsrb':
     init_const = 10
+elif args.dataset == 'cifar10':
+    init_const = 100
 lr = 0.001
 
 y_target = np.zeros([len(x_test), y_test.shape[1]])
@@ -118,7 +120,7 @@ if args.target_label is not None:
 report_file = '%s/%s' % (REPORT_DIR, REPORT_FILENAME)
 
 
-sample_idx = np.random.choice(len(x_test), 10, replace=False)
+sample_idx = np.random.choice(len(x_test), 500, replace=False)
 x_test = x_test[sample_idx]
 y_test = y_test[sample_idx]
 y_target = y_target[sample_idx]
@@ -222,18 +224,18 @@ with open(report_file, "w") as report:
     report.write('White-box attack accuracies')
     report.write('\n')
     for epsilon, result in zip(epsilon_values, pgd_results):
-        report.write("Test accuracy and attack success rate on PGD adversarial sample (epsilon = %.4f): %.4f%%, %.4f%%" % (epsilon, result[0] * 100, result[1]))
+        report.write("Test accuracy and attack success rate on PGD adversarial sample (epsilon = %.4f): %.4f%%, %.4f%%" % (epsilon, result[0] * 100, result[1] * 100))
         report.write('\n')
     report.write('\n')
     for epsilon, result in zip(epsilon_values, fgsm_results):
-        report.write("Test accuracy and attack success rate on FGSM adversarial sample (epsilon = %.4f): %.4f%%, %.4f%%" % (epsilon, result[0] * 100, result[1]))
+        report.write("Test accuracy and attack success rate on FGSM adversarial sample (epsilon = %.4f): %.4f%%, %.4f%%" % (epsilon, result[0] * 100, result[1] * 100))
         report.write('\n')
     if not targeted:
         report.write('\n')
-        report.write("Test accuracy,attack success rate, and norm on DeepFool adversarial sample: %.4f%%, %.4f%%, %.4f" % (deepfool_acc * 100, deepfool_suc_rate, deepfool_norm))
+        report.write("Test accuracy,attack success rate, and norm on DeepFool adversarial sample: %.4f%%, %.4f%%, %.4f" % (deepfool_acc * 100, deepfool_suc_rate * 100, deepfool_norm))
     report.write('\n')
     report.write('\n')
-    report.write("Test accuracy, attack success rate, and norm on C&W L2 adversarial sample: %.4f%%, %.4f%%, %.4f" % (carliniL2_acc * 100, carliniL2_suc_rate, carliniL2_norm))
+    report.write("Test accuracy, attack success rate, and norm on C&W L2 adversarial sample: %.4f%%, %.4f%%, %.4f" % (carliniL2_acc * 100, carliniL2_suc_rate * 100, carliniL2_norm))
     report.write('\n')
     # report.write('\n')
     # report.write('\n')

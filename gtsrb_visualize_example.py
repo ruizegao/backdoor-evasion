@@ -67,7 +67,7 @@ MASK_SHAPE = MASK_SHAPE.astype(int)
 DATA_DIR = 'data'  # data folder
 DATA_FILE = 'gtsrb_dataset_int.h5'  # dataset file
 MODEL_DIR = 'models'  # model directory
-# MODEL_FILENAME = 'gtsrb_bottom_right_white_4_target_33.h5'  # model file
+# MODEL_FILENAME = 'gtsrb_backdoor_33.h5'  # model file
 MODEL_FILENAME = 'gtsrb_clean.h5'  # model file
 RESULT_DIR = 'results' + '/' + 'bd_success_rate_{}'.format(ATTACK_SUCC_THRESHOLD) + '/' + MODEL_FILENAME[:-3]  # directory for storing results
 # image filename template for visualization results

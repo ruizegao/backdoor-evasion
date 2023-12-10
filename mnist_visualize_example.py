@@ -66,7 +66,7 @@ MASK_SHAPE = np.ceil(np.array(INPUT_SHAPE[0:2], dtype=float) / UPSAMPLE_SIZE)
 MASK_SHAPE = MASK_SHAPE.astype(int)
 
 MODEL_DIR = 'models'  # model directory
-# MODEL_FILENAME = 'mnist_bottom_right_white_4_target_7.h5'  # model file
+# MODEL_FILENAME = 'mnist_backdoor_7.h5'  # model file
 MODEL_FILENAME = 'mnist_clean.h5'  # model file
 RESULT_DIR = 'results' + '/' + 'bd_success_rate_{}'.format(ATTACK_SUCC_THRESHOLD) + '/' + MODEL_FILENAME[:-3]  # directory for storing results
 # image filename template for visualization results

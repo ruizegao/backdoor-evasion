@@ -31,7 +31,7 @@ def load_dataset():
 
 
 MODEL_DIR = 'models'  # model directory
-# MODEL_FILENAME = 'mnist_bottom_right_white_4_target_7.h5'  # model file
+# MODEL_FILENAME = 'mnist_backdoor_7.h5'  # model file
 MODEL_FILENAME = 'mnist_clean.h5'  # model file
 
 print('loading dataset')

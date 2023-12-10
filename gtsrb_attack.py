@@ -19,7 +19,7 @@ from gtsrb_visualize_example import load_dataset, load_model, build_data_loader
 DATA_DIR = 'data'  # data folder
 DATA_FILE = 'gtsrb_dataset_int.h5'  # dataset file
 MODEL_DIR = 'models'  # model directory
-MODEL_FILENAME = 'gtsrb_bottom_right_white_4_target_33.h5'  # model file
+MODEL_FILENAME = 'gtsrb_backdoor_33.h5'  # model file
 # MODEL_FILENAME = 'gtsrb_clean.h5'  # model file
 
 print('loading dataset')

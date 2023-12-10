@@ -22,7 +22,7 @@ import utils_backdoor
 
 TARGET_LS = []
 NUM_LABEL = len(TARGET_LS)
-# MODEL_FILEPATH = '../models/mnist_bottom_right_white_4_target_7.h5'  # model file
+# MODEL_FILEPATH = '../models/mnist_backdoor_7.h5'  # model file
 MODEL_FILEPATH = '../models/mnist_clean.h5'  # model file
 # LOAD_TRAIN_MODEL = 0
 NUM_CLASSES = 10
